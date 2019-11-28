@@ -1,4 +1,4 @@
-my_data <- test2
+my_data <- heart_datas
 names(my_data)
 attach(my_data)
 
@@ -20,9 +20,8 @@ summary(lm.fit)
 
 
 # ----------- LOGISTIC REGRESSION WITH CROSS VALIDATION -----------
-# let's take k-fold cross-validation with k=10.
 
-# general form : 
+# GENERAL FORM : 
 glm.fit=glm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data,subset=train)
 # informations about the regression : 
 coef(glm.fit)
@@ -31,15 +30,18 @@ summary(glm.fit)
 # test (test error MSE) :
 mean((target-predict(glm.fit,my_data, type="response"))[-train]^2)
 
-# cross validation : 
+# CROSS VALIDATION : 
+glm.fit2=glm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data)
 set.seed(17)
+
 # K = 10 
 library(boot)
-cv.error.10=cv.glm(Auto,glm.fit,K=10)$delta[1]
+cv.error.10=cv.glm(my_data,glm.fit2,K=10)$delta[1]
 cv.error.10
 
 # leave-one-out cross validation : 
-cv.error=cv.glm(Auto,glm.fit)$delta[1]
+cv.error=cv.glm(my_data,glm.fit2)$delta[1]
+cv.error
 
 
 # ----------- POLYNOMIAL REGRESSION + SPLINE -----------
