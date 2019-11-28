@@ -46,6 +46,7 @@ cv.error
 # ----------- TREE BASED METHOD  -----------
 
 #install.packages("tree")
+
 # CLASSIFICATION  tree : 
 library(tree)
 disease=ifelse(target<=0.5,"No","Yes")
@@ -64,7 +65,7 @@ disease.test=disease[-train]
 tree.datas=tree(disease~.-target,my_data_2,subset=train)
 tree.pred=predict(tree.datas,my_data_2.test,type="class")
 table(tree.pred,disease.test)
-(49+64)/(49+22+18+64) = 113/153 = 0.7386
+# (49+64)/(49+22+18+64) = 113/153 = 0.7386
 
 # PRUNNING TREE 
 set.seed(3)
@@ -75,16 +76,9 @@ prune.datas=prune.misclass(tree.datas,best=9)
 plot(prune.datas)
 text(prune.datas,pretty=0)
 # error test prunning tree : 
-tree.pred=predict(prune.datas,Carseats.test,type="class")
-table(tree.pred,High.test)
-(94+60)/200
-prune.carseats=prune.misclass(tree.carseats,best=15)
-plot(prune.carseats)
-text(prune.carseats,pretty=0)
-tree.pred=predict(prune.carseats,Carseats.test,type="class")
-table(tree.pred,High.test)
-(86+62)/200
-
+tree.pred2=predict(prune.datas,my_data_2.test,type="class")
+table(tree.pred2,disease.test)
+# (49+69)/153 = 118/153 = 0.7712 
 
 # ---------------------------------------------------------------
 # ------------------ BEST SUBSET SELECTION  ---------------------
