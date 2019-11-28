@@ -56,24 +56,25 @@ plot(tree.datas)
 text(tree.datas,pretty=0)
 tree.datas
 
+# error test classification tree : 
 set.seed(2)
 train=sample(1:nrow(my_data_2), 150)
 my_data_2.test=my_data_2[-train,]
 disease.test=disease[-train]
 tree.datas=tree(disease~.-target,my_data_2,subset=train)
-tree.pred=predict(tree.datas,my_data_2,type="class")
+tree.pred=predict(tree.datas,my_data_2.test,type="class")
 table(tree.pred,disease.test)
-(104+50)/200
+(49+64)/(49+22+18+64) = 113/153 = 0.7386
 
 # PRUNNING TREE 
 set.seed(3)
 cv.prune.datas=cv.tree(tree.datas,FUN=prune.misclass)
 cv.prune.datas
 par(mfrow=c(1,2))
-prune.datas=prune.misclass(tree.datas,best=4)
+prune.datas=prune.misclass(tree.datas,best=9)
 plot(prune.datas)
 text(prune.datas,pretty=0)
-# check error 
+# error test prunning tree : 
 tree.pred=predict(prune.datas,Carseats.test,type="class")
 table(tree.pred,High.test)
 (94+60)/200
