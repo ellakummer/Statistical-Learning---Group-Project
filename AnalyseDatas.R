@@ -133,7 +133,7 @@ plot(regfit.full,scale="adjr2")
 plot(regfit.full,scale="Cp")
 plot(regfit.full,scale="bic")
 
-# Choosing Among Models
+# Choosing Among Models ---> TO DO. 
 
 set.seed(1)
 train=sample(c(TRUE,FALSE), nrow(Hitters),rep=TRUE)
