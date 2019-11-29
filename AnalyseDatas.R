@@ -180,6 +180,7 @@ par(mfrow=c(1,1))
 plot(mean.cv.errors,type='b')
 reg.best=regsubsets(target~.,data=my_data, nvmax=13)
 coef(reg.best,11)
+coef(reg.best,7)
 
 
 
