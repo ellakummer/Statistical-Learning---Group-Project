@@ -133,23 +133,24 @@ plot(regfit.full,scale="adjr2")
 plot(regfit.full,scale="Cp")
 plot(regfit.full,scale="bic")
 
-# Choosing Among Models ---> TO DO. 
+# Choosing Among Models : MSE
 
 set.seed(1)
-train=sample(c(TRUE,FALSE), nrow(Hitters),rep=TRUE)
-test=(!train)
-regfit.best=regsubsets(Salary~.,data=Hitters[train,],nvmax=19)
-test.mat=model.matrix(Salary~.,data=Hitters[test,])
-val.errors=rep(NA,19)
-test.mat
-for(i in 1:19){
+train2=sample(c(TRUE,FALSE), nrow(my_data),rep=TRUE)
+test2=(!train2)
+regfit.best=regsubsets(target~.,data=my_data[train2,],nvmax=13)
+test.mat=model.matrix(target~.,data=my_data[test2,])
+val.errors=rep(NA,13)
+for(i in 1:13){
   coefi=coef(regfit.best,id=i)
   pred=test.mat[,names(coefi)]%*%coefi
-  val.errors[i]=mean((Hitters$Salary[test]-pred)^2)
+  val.errors[i]=mean((my_data$target[test2]-pred)^2)
 }
 val.errors
 which.min(val.errors)
-coef(regfit.best,10)
+coef(regfit.best,8)
+
+# Choosing Among Models : CROSS VALIDATION 
 
 predict.regsubsets=function(object,newdata,id,...){
   form=as.formula(object$call[[2]])
@@ -158,19 +159,17 @@ predict.regsubsets=function(object,newdata,id,...){
   xvars=names(coefi)
   mat[,xvars]%*%coefi
 }
-regfit.best=regsubsets(Salary~.,data=Hitters,nvmax=19)
-coef(regfit.best,10)
+
 k=10
 set.seed(1)
-folds=sample(1:k,nrow(Hitters),replace=TRUE)
-cv.errors=matrix(NA,k,19, dimnames=list(NULL, paste(1:19)))
-
+folds=sample(1:k,nrow(my_data),replace=TRUE)
+cv.errors=matrix(NA,k,13, dimnames=list(NULL, paste(1:13)))
 
 for(j in 1:k){
-  best.fit=regsubsets(Salary~.,data=Hitters[folds!=j,],nvmax=19)
-  for(i in 1:19){
-    pred=predict(best.fit,Hitters[folds==j,],id=i)
-    cv.errors[j,i]=mean( (Hitters$Salary[folds==j]-pred)^2)
+  best.fit=regsubsets(target~.,data=my_data[folds!=j,],nvmax=13)
+  for(i in 1:13){
+    pred=predict(best.fit,my_data[folds==j,],id=i)
+    cv.errors[j,i]=mean( (my_data$target[folds==j]-pred)^2)
   }
 }
 
@@ -179,7 +178,7 @@ mean.cv.errors
 which.min(mean.cv.errors)
 par(mfrow=c(1,1))
 plot(mean.cv.errors,type='b')
-reg.best=regsubsets(Salary~.,data=Hitters, nvmax=19)
+reg.best=regsubsets(target~.,data=my_data, nvmax=13)
 coef(reg.best,11)
 
 
