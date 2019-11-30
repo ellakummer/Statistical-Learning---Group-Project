@@ -183,6 +183,28 @@ coef(reg.best,11)
 coef(reg.best,7)
 
 
+# ----------- LOGISTIC REGRESSION WITH CROSS VALIDATION (TAKING BEST SUBSET) -----------
+
+# GENERAL FORM : 
+glm.fit3=glm(target~sex+cp+trestbps+chol+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data,subset=train)
+# informations about the regression : 
+
+# test error MSE :
+mean((target-predict(glm.fit3,my_data, type="response"))[-train]^2)
+
+# CROSS VALIDATION : 
+glm.fit4=glm(target~sex+cp+trestbps+chol+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data)
+set.seed(17)
+
+# K = 10 
+library(boot)
+cv.error.10=cv.glm(my_data,glm.fit4,K=10)$delta[1]
+cv.error.10
+
+# leave-one-out cross validation : 
+cv.error=cv.glm(my_data,glm.fit4)$delta[1]
+cv.error
+
 
 # ---------------------------------------------------------------
 # ---------------------NON LINEAR MODELING ----------------------
@@ -190,9 +212,33 @@ coef(reg.best,7)
 
 # ----------- POLYNOMIAL REGRESSION + SPLINE -----------
 
-# see tuto5 !! :) 
+# exemples : 
+#fit.1=lm(wage~education+age,data=Wage)
+#fit.2=lm(wage~education+poly(age,2),data=Wage)
+#fit.3=lm(wage~education+poly(age,3),data=Wage)
+#anova(fit.1,fit.2,fit.3)
 
+# but not sure usefull if we're doing GAM : 
 
+# ----------- GAM -----------
 
+# we gonna try : 7 best : cubique, 11-7 rest : square
+# ! predictors with less than 4 values can't be smoothing variables 
+gam.test1=gam(target~sex+s(cp, 3)+s(trestbps, 2)+s(chol, 2)+restecg+s(thalach, 3)+exang+s(oldpeak, 3)+slope+ca+thal,data=my_data)
+par(mfrow =c(3,4))
+plot(gam.test, se=TRUE ,col ="blue ")
+# after having a look :
+# linear function for : all except chol, oldpeak
+gam.test2=gam(target~sex+cp+trestbps+s(chol, 3)+restecg+thalach+exang+s(oldpeak, 3)+slope+ca+thal,data=my_data)
+gam.test3=gam(target~sex+cp+trestbps+s(chol, 2)+restecg+thalach+exang+s(oldpeak, 3)+slope+ca+thal,data=my_data)
+gam.test4=gam(target~sex+cp+trestbps+s(chol, 2)+restecg+thalach+exang+s(oldpeak, 2)+slope+ca+thal,data=my_data)
+gam.test5=gam(target~cp+trestbps+s(chol, 2)+restecg+thalach+exang+s(oldpeak, 2)+slope+ca+thal,data=my_data)
+# test, which one is the best 
+anova(gam.test5, gam.test4 ,gam.test3, gam.test2, gam.test1, test="F")
+
+plot(gam.test2, se=TRUE ,col ="blue ")
+
+# MSE : 
+mean((target-predict(gam.test2,my_data))[-train]^2)
 
 
