@@ -15,6 +15,7 @@ lm.fit=lm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+slop
 # test (test error MSE) :
 mean((target-predict(lm.fit,my_data))[-train]^2)
 # WE FIND MSE = 0.1540146
+# I get a different one: 0.1727088 (made sure to set seed = 1)
 
 summary(lm.fit)
 
