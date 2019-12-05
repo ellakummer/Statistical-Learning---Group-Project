@@ -2,6 +2,10 @@ my_data <- heart_datas
 names(my_data)
 attach(my_data)
 
+# ----------- correlation matrix  -----------
+
+cor(my_data)
+
 # ----------- LINEAR REGRESSION WITH VALIDATION SET APPROACH -----------
 
 set.seed(1)
