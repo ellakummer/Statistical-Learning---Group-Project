@@ -2,23 +2,38 @@ my_data <- heart_datas
 names(my_data)
 attach(my_data)
 
+# ----------- correlation matrix  -----------
+
+cor(my_data)
+
 # ----------- LINEAR REGRESSION WITH VALIDATION SET APPROACH -----------
 
 set.seed(1)
 
-# training set (we take half of our datas) : 
-train=sample(303,101)
+# training set (we take 1/2 of our datas) : 
+train=sample(303,151)
 
 # we apply a linear regression :
 lm.fit=lm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data,subset=train)
 
-# test (test error MSE) :
-mean((target-predict(lm.fit,my_data))[-train]^2)
-# WE FIND MSE = 0.1540146
+lm.probs=predict(lm.fit,my_data,type="response")
+
+# set predictions to 1 or 0 : 
+for (i in 1:length(lm.probs)){
+  if (lm.probs[i] >= 0.5){
+    lm.probs[i] = 1
+  } else {
+    lm.probs[i] = 0
+  }
+}
+# test error MSE : 
+mean((target-lm.probs)[-train]^2)
+
+# WE FIND MSE = 0.15789470146
 # I get a different one: 0.1727088 (made sure to set seed = 1)
-
+# new woth good training : 0.1270425
 summary(lm.fit)
-
+coef(lm.fit)
 
 # ----------- LOGISTIC REGRESSION WITH CROSS VALIDATION -----------
 
@@ -28,8 +43,19 @@ glm.fit=glm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+sl
 coef(glm.fit)
 summary(glm.fit)
 
-# test error MSE :
-mean((target-predict(glm.fit,my_data, type="response"))[-train]^2)
+glm.probs=predict(glm.fit,my_data,type="response")
+
+# set predictions to 1 or 0 : 
+for (i in 1:length(glm.probs)){
+  if (glm.probs[i] >= 0.5){
+    glm.probs[i] = 1
+  } else {
+    glm.probs[i] = 0
+  }
+}
+# test error MSE : 
+mean((target-glm.probs)[-train]^2)
+
 
 # CROSS VALIDATION : 
 glm.fit2=glm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data)
@@ -65,8 +91,6 @@ my_data_2.test=my_data_2[-train,]
 disease.test=disease[-train]
 tree.datas=tree(disease~.-target,my_data_2,subset=train)
 tree.pred=predict(tree.datas,my_data_2.test,type="class")
-table(tree.pred,disease.test)
-# (52+64)/(49+22+18+64) = 116/153 = 0.7582
 
 # PRUNNING TREE 
 set.seed(3)
@@ -80,6 +104,10 @@ text(prune.datas,pretty=0)
 tree.pred2=predict(prune.datas,my_data_2.test,type="class")
 table(tree.pred2,disease.test)
 # (49+69)/153 = 118/153 = 0.7712 
+
+prune.datas2=prune.misclass(tree.datas,best=4)
+plot(prune.datas2)
+text(prune.datas2,pretty=0)
 
 # ---------------------------------------------------------------
 # ------------------ BEST SUBSET SELECTION  ---------------------
@@ -98,7 +126,6 @@ reg.summary
 # models:
 names(reg.summary)
 
-# USELESS ?? 
 # we want according to adjusted R2, BIC, Cp
 reg.summary$adjr2
 reg.summary$bic
@@ -107,7 +134,6 @@ reg.summary$rsq
 
 par(mfrow=c(2,2))
 
-# USELESS ?? 
 plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
 
 # bests models according to : 
@@ -128,13 +154,12 @@ points(7,reg.summary$bic[7],col="red",cex=2,pch=20)
 coef(regfit.full ,7)
 
 # Show some plots to provide evidence : 
-# USELESS ??  don't like how it's plot 
 plot(regfit.full,scale="r2")
 plot(regfit.full,scale="adjr2")
 plot(regfit.full,scale="Cp")
 plot(regfit.full,scale="bic")
 
-# Choosing Among Models : MSE
+# Choosing Among Models : MSE (to try)
 
 set.seed(1)
 train2=sample(c(TRUE,FALSE), nrow(my_data),rep=TRUE)
@@ -181,8 +206,29 @@ par(mfrow=c(1,1))
 plot(mean.cv.errors,type='b')
 reg.best=regsubsets(target~.,data=my_data, nvmax=13)
 coef(reg.best,11)
-coef(reg.best,7)
 
+
+# ----------- LOGISTIC REGRESSION WITH CROSS VALIDATION (TAKING BEST SUBSET) -----------
+
+# GENERAL FORM : 
+glm.fit3=glm(target~sex+cp+trestbps+chol+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data,subset=train)
+# informations about the regression : 
+
+# test error MSE :
+mean((target-predict(glm.fit3,my_data, type="response"))[-train]^2)
+
+# CROSS VALIDATION : 
+glm.fit4=glm(target~sex+cp+trestbps+chol+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data)
+set.seed(17)
+
+# K = 10 
+library(boot)
+cv.error.10=cv.glm(my_data,glm.fit4,K=10)$delta[1]
+cv.error.10
+
+# leave-one-out cross validation : 
+cv.error=cv.glm(my_data,glm.fit4)$delta[1]
+cv.error
 
 
 # ---------------------------------------------------------------
@@ -191,9 +237,33 @@ coef(reg.best,7)
 
 # ----------- POLYNOMIAL REGRESSION + SPLINE -----------
 
-# see tuto5 !! :) 
+# exemples : 
+#fit.1=lm(wage~education+age,data=Wage)
+#fit.2=lm(wage~education+poly(age,2),data=Wage)
+#fit.3=lm(wage~education+poly(age,3),data=Wage)
+#anova(fit.1,fit.2,fit.3)
 
+# but not usefull if we're doing GAM : 
 
+# ----------- GAM -----------
 
+# we gonna try : 7 best : cubique, 11-7 rest : quadratic
+# ! predictors with less than 4 values can't be smoothing variables 
+gam.test1=gam(target~sex+s(cp, 3)+s(trestbps, 2)+s(chol, 2)+restecg+s(thalach, 3)+exang+s(oldpeak, 3)+slope+ca+thal,data=my_data)
+par(mfrow =c(3,4))
+plot(gam.test, se=TRUE ,col ="blue ")
+# after having a look :
+# linear function for : all except chol, oldpeak
+gam.test2=gam(target~sex+cp+trestbps+s(chol, 3)+restecg+thalach+exang+s(oldpeak, 3)+slope+ca+thal,data=my_data)
+gam.test3=gam(target~sex+cp+trestbps+s(chol, 2)+restecg+thalach+exang+s(oldpeak, 3)+slope+ca+thal,data=my_data)
+gam.test4=gam(target~sex+cp+trestbps+s(chol, 2)+restecg+thalach+exang+s(oldpeak, 2)+slope+ca+thal,data=my_data)
+gam.test5=gam(target~cp+trestbps+s(chol, 2)+restecg+thalach+exang+s(oldpeak, 2)+slope+ca+thal,data=my_data)
+# test, which one is the best 
+anova(gam.test5, gam.test4 ,gam.test3, gam.test2, gam.test1, test="F")
+
+plot(gam.test2, se=TRUE ,col ="blue ")
+
+# MSE : 
+mean((target-predict(gam.test2,my_data))[-train]^2)
 
 
