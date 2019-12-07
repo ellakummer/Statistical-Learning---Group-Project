@@ -237,7 +237,7 @@ cv.error
 
 # ----------- POLYNOMIAL REGRESSION + SPLINE -----------
 
-# exemples : 
+# examples : 
 #fit.1=lm(wage~education+age,data=Wage)
 #fit.2=lm(wage~education+poly(age,2),data=Wage)
 #fit.3=lm(wage~education+poly(age,3),data=Wage)
