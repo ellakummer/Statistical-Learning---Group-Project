@@ -16,7 +16,7 @@ train=sample(303,151)
 # we apply a linear regression :
 lm.fit=lm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+slope+ca+thal,data=my_data,subset=train)
 
-lm.probs=predict(lm.fit,my_data,type="response")
+lm.probs=predict(lm.fit,my_data[-train,], type="response")
 
 # set predictions to 1 or 0 : 
 for (i in 1:length(lm.probs)){
@@ -26,8 +26,12 @@ for (i in 1:length(lm.probs)){
     lm.probs[i] = 0
   }
 }
+
+# test matrix : 
+table(lm.probs,my_data$target[-train])
+
 # test error MSE : 
-mean((target-lm.probs)[-train]^2)
+mean((target[-train]-lm.probs)^2)
 
 # WE FIND MSE = 0.15789470146
 # I get a different one: 0.1727088 (made sure to set seed = 1)
@@ -43,7 +47,7 @@ glm.fit=glm(target~age+sex+cp+trestbps+chol+fbs+restecg+thalach+exang+oldpeak+sl
 coef(glm.fit)
 summary(glm.fit)
 
-glm.probs=predict(glm.fit,my_data,type="response")
+glm.probs=predict(glm.fit,my_data[-train,],type="response")
 
 # set predictions to 1 or 0 : 
 for (i in 1:length(glm.probs)){
@@ -54,7 +58,7 @@ for (i in 1:length(glm.probs)){
   }
 }
 # test error MSE : 
-mean((target-glm.probs)[-train]^2)
+mean((target[-train]-glm.probs)^2)
 
 
 # CROSS VALIDATION : 
